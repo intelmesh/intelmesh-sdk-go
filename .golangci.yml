@@ -1,0 +1,75 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - revive
+    - errcheck
+    - govet
+    - staticcheck
+    - gosec
+    - gocyclo
+    - funlen
+    - gocognit
+    - exhaustruct
+    - err113
+    - wrapcheck
+    - unconvert
+    - unparam
+    - misspell
+    - prealloc
+    - nolintlint
+    - bodyclose
+  settings:
+    gocyclo:
+      min-complexity: 10
+    funlen:
+      lines: 50
+      statements: 35
+    gocognit:
+      min-complexity: 15
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+        - name: unexported-return
+          severity: warning
+        - name: blank-imports
+          severity: warning
+        - name: context-as-argument
+          severity: error
+        - name: error-return
+          severity: error
+    wrapcheck:
+      ignoreSigs:
+        - .Errorf(
+        - errors.New(
+        - errors.Unwrap(
+        - errors.Join(
+        - .Wrap(
+        - .Wrapf(
+        - .WithMessage(
+        - .WithMessagef(
+        - .WithStack(
+
+  exclusions:
+    rules:
+      - path: "_test\\.go$"
+        linters:
+          - wrapcheck
+          - exhaustruct
+          - funlen
+          - err113
+          - gocyclo
+          - gocognit
+      - path: "builders/"
+        linters:
+          - exhaustruct
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

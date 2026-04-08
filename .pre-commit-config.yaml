@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.62.2
+    hooks:
+      - id: golangci-lint
+        args: [--fix]
+
+  - repo: https://github.com/securego/gosec
+    rev: v2.21.4
+    hooks:
+      - id: gosec
+        args: ["-exclude-dir=vendor", "./..."]
+
+  - repo: local
+    hooks:
+      - id: go-test
+        name: go-test
+        entry: go test -race -count=1 ./...
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: go-build
+        name: go-build
+        entry: go build ./...
+        language: system
+        pass_filenames: false
+        types: [go]
