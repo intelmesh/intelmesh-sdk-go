@@ -31,11 +31,12 @@ const (
 
 // step represents a single resource to create during Apply.
 type step struct {
-	kind     stepKind
-	name     string
-	position int    // phases only
-	jsonPath string // scopes only
-	rule     *RuleBuilder
+	kind           stepKind
+	name           string
+	position       int    // phases only
+	applicableWhen string // phases only — optional CEL expression
+	jsonPath       string // scopes only
+	rule           *RuleBuilder
 }
 
 // Provisioner builds and executes a declarative resource plan against
@@ -68,7 +69,16 @@ func New(client *sdk.Client) *Provisioner {
 func (p *Provisioner) Phase(name string, position int) *Provisioner {
 	p.steps = append(p.steps, step{
 		kind: kindPhase, name: name, position: position,
-		jsonPath: "", rule: nil,
+		applicableWhen: "", jsonPath: "", rule: nil,
+	})
+	return p
+}
+
+// PhaseWithFilter registers a pipeline phase with an applicable_when CEL expression.
+func (p *Provisioner) PhaseWithFilter(name string, position int, applicableWhen string) *Provisioner {
+	p.steps = append(p.steps, step{
+		kind: kindPhase, name: name, position: position,
+		applicableWhen: applicableWhen, jsonPath: "", rule: nil,
 	})
 	return p
 }
@@ -154,8 +164,9 @@ func (p *Provisioner) applyStep(ctx context.Context, s step) error {
 
 func (p *Provisioner) createPhase(ctx context.Context, s step) error {
 	phase, err := p.client.Phases.Create(ctx, sdk.CreatePhaseRequest{
-		Name:     s.name,
-		Position: s.position,
+		Name:           s.name,
+		Position:       s.position,
+		ApplicableWhen: s.applicableWhen,
 	})
 	if err != nil {
 		return fmt.Errorf("provision phase %q: %w", s.name, err)

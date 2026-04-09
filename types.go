@@ -27,22 +27,25 @@ type IngestResult struct {
 
 // Phase represents a pipeline execution phase.
 type Phase struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Position  int       `json:"position"`
-	CreatedAt time.Time `json:"created_at"`
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	Position       int       `json:"position"`
+	ApplicableWhen string    `json:"applicable_when,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
 }
 
 // CreatePhaseRequest is the request body for creating a phase.
 type CreatePhaseRequest struct {
-	Name     string `json:"name"`
-	Position int    `json:"position"`
+	Name           string `json:"name"`
+	Position       int    `json:"position"`
+	ApplicableWhen string `json:"applicable_when,omitempty"`
 }
 
 // UpdatePhaseRequest is the request body for updating a phase.
 type UpdatePhaseRequest struct {
-	Name     string `json:"name,omitempty"`
-	Position *int   `json:"position,omitempty"`
+	Name           string `json:"name,omitempty"`
+	Position       *int   `json:"position,omitempty"`
+	ApplicableWhen string `json:"applicable_when,omitempty"`
 }
 
 // Scope represents a scope for tracking event dimensions.
