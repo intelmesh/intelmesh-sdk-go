@@ -118,11 +118,12 @@ type ScoreOperation struct {
 	Add int64 `json:"add"`
 }
 
-// Mutation defines a side-effect action triggered by a rule.
+// Mutation describes a side-effect produced by a matching rule.
 type Mutation struct {
 	Type      string `json:"type"`
 	Target    string `json:"target"`
 	ValuePath string `json:"value_path"`
+	Amount    *int64 `json:"amount,omitempty"`
 }
 
 // Actions defines what happens when a rule matches.

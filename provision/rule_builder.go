@@ -21,6 +21,7 @@ type mutationSpec struct {
 	mutationType string
 	listName     string
 	valuePath    string
+	amount       *int64
 }
 
 func newRuleBuilder(parent *Provisioner, name string) *RuleBuilder {
@@ -103,6 +104,32 @@ func (r *RuleBuilder) MutateList(mutType, listName, valuePath string) *RuleBuild
 		mutationType: mutType,
 		listName:     listName,
 		valuePath:    valuePath,
+		amount:       nil,
+	})
+	return r
+}
+
+// AddScoped appends a score.add mutation targeting scopeName with the
+// value resolved from valuePath and the given amount (negative allowed).
+func (r *RuleBuilder) AddScoped(scopeName, valuePath string, amount int64) *RuleBuilder {
+	a := amount
+	r.mutations = append(r.mutations, mutationSpec{
+		mutationType: "score.add",
+		listName:     scopeName,
+		valuePath:    valuePath,
+		amount:       &a,
+	})
+	return r
+}
+
+// SetScoped appends a score.set mutation. Use amount=0 to reset.
+func (r *RuleBuilder) SetScoped(scopeName, valuePath string, amount int64) *RuleBuilder {
+	a := amount
+	r.mutations = append(r.mutations, mutationSpec{
+		mutationType: "score.set",
+		listName:     scopeName,
+		valuePath:    valuePath,
+		amount:       &a,
 	})
 	return r
 }
@@ -138,6 +165,7 @@ func (r *RuleBuilder) buildActions() sdk.Actions {
 				Type:      m.mutationType,
 				Target:    m.listName,
 				ValuePath: m.valuePath,
+				Amount:    m.amount,
 			})
 		}
 		actions.Mutations = muts

@@ -372,6 +372,47 @@ func TestProvisioner_FullPipeline(t *testing.T) {
 	}
 }
 
+func TestProvisioner_RuleWithScoreMutations(t *testing.T) {
+	t.Parallel()
+
+	mock := newMockAPI()
+	srv := httptest.NewServer(mock.handler())
+	defer srv.Close()
+
+	client := sdk.New(sdk.Config{BaseURL: srv.URL, APIKey: "test"})
+	p := provision.New(client).
+		Phase("scoring", 1).
+		Rule("bump").InPhase("scoring").Priority(1).
+		When("true").
+		AddScoped("ip", "event.metadata.source_ip", 30).
+		Done()
+
+	if err := p.Apply(context.Background()); err != nil {
+		t.Fatalf("Apply: %v", err)
+	}
+
+	mock.mu.Lock()
+	lastRule := mock.lastRule
+	mock.mu.Unlock()
+
+	if lastRule == nil {
+		t.Fatal("expected rule request to be captured")
+	}
+	if len(lastRule.Actions.Mutations) != 1 {
+		t.Fatalf("expected 1 mutation, got %d", len(lastRule.Actions.Mutations))
+	}
+	m := lastRule.Actions.Mutations[0]
+	if m.Type != "score.add" || m.Target != "ip" {
+		t.Fatalf("unexpected mutation: %+v", m)
+	}
+	if m.ValuePath != "event.metadata.source_ip" {
+		t.Errorf("value_path: got %q, want %q", m.ValuePath, "event.metadata.source_ip")
+	}
+	if m.Amount == nil || *m.Amount != 30 {
+		t.Fatalf("expected amount=30, got %v", m.Amount)
+	}
+}
+
 func TestProvisioner_RuleSkipPhase(t *testing.T) {
 	t.Parallel()
 
